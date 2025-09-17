@@ -40,7 +40,7 @@ int main(){
     audioFile.open("Waveform.wav", ios::binary);
 
     for(int i = 0; i < sampleRate * duration; i++){
-        auto sample =  sineOscillator1.Process();
+        auto sample =  sineOscillator1.Process() + sineOscillator2.Process();
         int intSample = static_cast<int> (sample * maxAmplitude);
         audioFile.write(reinterpret_cast<char *> (&intSample), 2);
     }
