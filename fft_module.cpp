@@ -2,7 +2,7 @@
 #include <fstream>
 #include <complex>
 #include <vector>
-#include <kiss_fft.h>
+#include "kiss_fft.h"
 using namespace std;
 
 const int sampleRate = 44100;
@@ -12,8 +12,11 @@ const int hop = 2205; //window_size/2 of advance per window
 
 int main(){
     ifstream audioFile;
-    audioFile.open("input.wav", ios::binary);
+    audioFile.open("Waveform.wav", ios::binary);
     audioFile.seekg(44);
+
+    ofstream outputFile;
+    outputFile.open("Final_equation.txt");
 
     vector<float> samples;
     int16_t sample;
@@ -55,14 +58,32 @@ int main(){
     }
 
     // 6. Find top peaks + convert to (freq, amp)
-    for(int peak = 0; peak < 5; peak++){
-        int idx = max_element(mag.begin(), mag.end()) - mag.begin();
-        float freq = (idx * sampleRate) / (float)N_fft;
-        cout << "Frame " << i << " peak " << peak << ": freq=" << freq << " Hz, mag=" << mag[idx] << endl;
-        mag[idx] = 0;
-    }
+    int numPeaks = 5;
+    string desmos = "f" + to_string(i) + "(t) = ";
+
+    for(int peak = 0; peak < numPeaks; peak++){
+    int idx = max_element(mag.begin(), mag.end()) - mag.begin();
+
+    float freq = (idx * sampleRate) / (float)N_fft;
+
+    float amp = mag[idx] / (N_fft/2);
+
+    float phase = atan2(fft_out[idx].i, fft_out[idx].r);
+
+    desmos += to_string(amp) + "*sin(2* pi *" + to_string(freq) + "*t + " + to_string(phase) + ")";
+    if(peak < numPeaks-1) desmos += " + ";
+
+    mag[idx] = 0;
 }
+
+outputFile << desmos << endl;
+
+}
+
+
 free(cfg);
+audioFile.close();
+outputFile.close();
 
 return 0;
 }
